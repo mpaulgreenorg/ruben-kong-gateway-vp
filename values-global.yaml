@@ -1,6 +1,6 @@
 ---
 global:
-  pattern: multicloud-gitops
+  pattern: kong-gateway
 
   options:
     useCSV: false
@@ -8,4 +8,4 @@ global:
     installPlanApproval: Automatic
 
 main:
-  clusterGroupName: hub
+  clusterGroupName: unmanaged

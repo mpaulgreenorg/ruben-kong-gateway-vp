@@ -1,0 +1,14 @@
+---
+secretStore:
+  name: vault-backend
+  kind: ClusterSecretStore
+
+secretsBase:
+  key: secret/data/hub/
+
+global:
+  hubClusterDomain: hub.example.com
+  localClusterDomain: region-one.example.com
+
+clusterGroup:
+  isHubCluster: true

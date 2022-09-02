@@ -1,0 +1,6 @@
+apiVersion: v2
+description: A Helm chart to build and deploy a use of Kong Gateway Control plane.
+keywords:
+- pattern
+name: kong-cp
+version: 0.0.1

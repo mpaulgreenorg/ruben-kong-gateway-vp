@@ -1,38 +1,30 @@
 clusterGroup:
-  name: hub
+  name: unmanaged
   isHubCluster: true
   # Note: setting this to true stores the vault unseal keys inside a cluster secret and
   # is fundamentally insecure
   insecureUnsealVaultInsideCluster: false
 
   namespaces:
-  - open-cluster-management
   - vault
   - golang-external-secrets
-  - config-demo
-
-  subscriptions:
-    acm:
-      name: advanced-cluster-management
-      namespace: open-cluster-management
-      channel: release-2.5
-      csv: advanced-cluster-management.v2.5.0
+  - kong
 
   projects:
-  - hub
-  - config-demo
+    hub:
+      name: hub
+    controlplane:
+      name: controlplane
+      target: controlplane
+    dataplane:
+      name: dataplane
+      target: dataplane
+
+  externalClusters:
+    - controlplane
+    - dataplane
 
   applications:
-    acm:
-      name: acm
-      namespace: open-cluster-management
-      project: hub
-      path: common/acm
-      ignoreDifferences:
-      - group: internal.open-cluster-management.io
-        kind: ManagedClusterInfo
-        jsonPointers:
-          - /spec/loggingCA
 
     vault:
       name: vault
@@ -60,6 +52,14 @@ clusterGroup:
         value: "registry.connect.redhat.com/hashicorp/vault"
       - name: server.image.tag
         value: "1.10.3-ubi"
+      - name: server.ha.enabled
+        value: true
+      - name: server.ha.replicas
+        value: 2
+      - name: server.ha.raft.enabled
+        value: true
+      - name: server.ha.raft.tls
+        value: false
 
     golang-external-secrets:
       name: golang-external-secrets
@@ -67,11 +67,24 @@ clusterGroup:
       project: hub
       path: common/golang-external-secrets
 
-    config-demo:
-      name: config-demo
-      namespace: config-demo
-      project: config-demo
-      path: charts/all/config-demo
+    kong-cp:
+      name: kong-cp
+      namespace: kong
+      project: controlplane
+      path: charts/all/kong-cp
+      clusterName: controlplane
+
+    kong-dp:
+      name: kong-dp
+      namespace: kong
+      project: dataplane
+      path: charts/all/kong-dp
+    
+    bookinfo:
+      name: bookinfo
+      namespace: bookinfo
+      project: dataplane
+      path: charts/all/bookinfo
 
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
@@ -89,14 +102,14 @@ clusterGroup:
       # verbosity: "-v"
 
   managedClusterGroups:
-    region-one:
-      name: region-one
-      helmOverrides:
-      - name: clusterGroup.isHubCluster
-        value: false
-      clusterSelector:
-        matchLabels:
-          clusterGroup: region-one
+    # region-one:
+    #   name: region-one
+    #   helmOverrides:
+    #   - name: clusterGroup.isHubCluster
+    #     value: false
+    #   clusterSelector:
+    #     matchLabels:
+    #       clusterGroup: region-one
 
 #  To have apps in multiple flavors, use namespaces and use helm overrides as appropriate
 #
